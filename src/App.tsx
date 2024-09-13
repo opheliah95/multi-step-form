@@ -1,9 +1,8 @@
-import { FormEvent, useState } from 'react'
-import { useMultiStepForm } from './useMultistepForm'
-import './App.css'
-import { UserForm } from './UserForm'
-import { AddressForm } from './AddressForm'
-import { AccountForm } from './AccountForm'
+import { UserForm } from "./UserForm"
+import { FormEvent, useState } from "react"
+import { AccountForm } from "./AccountForm"
+import { AddressForm } from "./AddressForm"
+import { useMultiStepForm } from "./useMultistepForm"
 
 type FormData = {
   firstName: string
@@ -30,53 +29,58 @@ const INITIAL_DATA: FormData = {
 }
 
 function App() {
-  const updateFields =(fields: Partial<FormData>) => {
+  const [data, setData] = useState(INITIAL_DATA)
+  function updateFields(fields: Partial<FormData>) {
     setData(prev => {
-      return {...prev, ...fields}
+      return { ...prev, ...fields }
     })
   }
-  const [data, setData] = useState(INITIAL_DATA)
-  const [count, setCount] = useState(0)
-  const {steps, currentStepIndex, step, isFirstStep, back, next, isLastStep} = useMultiStepForm([
-    <UserForm {...data} updateFields = {updateFields} />,
-    <AddressForm {...data}/>,
-    <AccountForm {...data}/>
-  ])
-  const handleSubmit = () => {
+  const { steps, currentStepIndex, step, isFirstStep, isLastStep, back, next } =
+    useMultiStepForm([
+      <UserForm {...data} updateFields={updateFields} />,
+      <AddressForm {...data} updateFields={updateFields} />,
+      <AccountForm {...data} updateFields={updateFields} />,
+    ])
 
+  function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    if (!isLastStep) return next()
+    alert("Successful Account Creation")
   }
 
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-
-    const form = e.currentTarget as HTMLFormElement;
-
-    // Check if the form is valid
-    if (!form.checkValidity()) {
-      form.reportValidity();
-      return;
-    }
-
-    next();
-  }
   return (
-    <div className="card">
-      <form onSubmit={onSubmit} className='myForm'>
-        <div className="step-count">{currentStepIndex+1}/{steps.length}</div>
-        <div className="step">{step}</div>
-        {
-          !isFirstStep && <button type="submit" onClick={onSubmit}>Previous</button>
-        }
-        {
-          !isLastStep && <button  type="submit" onClick={onSubmit}>Next</button>
-        }
-       {
-        isLastStep && (
-          <div className="submit">
-            <button onClick={handleSubmit}>Submit</button>
-          </div>
-        )
-       }
+    <div
+      style={{
+        position: "relative",
+        background: "white",
+        border: "1px solid black",
+        padding: "2rem",
+        margin: "1rem",
+        borderRadius: ".5rem",
+        fontFamily: "Arial",
+        maxWidth: "max-content",
+      }}
+    >
+      <form onSubmit={onSubmit}>
+        <div style={{ position: "absolute", top: ".5rem", right: ".5rem" }}>
+          {currentStepIndex + 1} / {steps.length}
+        </div>
+        {step}
+        <div
+          style={{
+            marginTop: "1rem",
+            display: "flex",
+            gap: ".5rem",
+            justifyContent: "flex-end",
+          }}
+        >
+          {!isFirstStep && (
+            <button type="button" onClick={back}>
+              Back
+            </button>
+          )}
+          <button type="submit">{isLastStep ? "Finish" : "Next"}</button>
+        </div>
       </form>
     </div>
   )
